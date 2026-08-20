@@ -47,11 +47,18 @@ db.exec(`
     engagement_impact TEXT,
     snapshot_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+  CREATE TABLE IF NOT EXISTS recommendations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    actionable_insight TEXT,
+    priority TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // API: Ingest Payload from Bob
 app.post('/api/ingest', (req, res) => {
-  const { channel, videos, comment_trends, aggregate_trends } = req.body;
+  const { channel, videos, comment_trends, aggregate_trends, recommendations } = req.body;
 
   const insertTransaction = db.transaction(() => {
     if (channel) {
@@ -84,6 +91,14 @@ app.post('/api/ingest', (req, res) => {
       `);
       aggregate_trends.forEach(a => stmt.run(a.topic, a.summary, a.engagement_impact));
     }
+
+    if (recommendations && Array.isArray(recommendations)) {
+      const stmt = db.prepare(`
+        INSERT INTO recommendations (title, actionable_insight, priority)
+        VALUES (?, ?, ?)
+      `);
+      recommendations.forEach(r => stmt.run(r.title, r.actionable_insight, r.priority));
+    }
   });
 
   try {
@@ -100,8 +115,9 @@ app.get('/api/dashboard', (req, res) => {
   const videos = db.prepare('SELECT * FROM videos ORDER BY snapshot_at DESC LIMIT 10').all();
   const aggregateTrends = db.prepare('SELECT * FROM aggregate_trends ORDER BY snapshot_at DESC LIMIT 5').all();
   const commentTrends = db.prepare('SELECT * FROM comment_trends ORDER BY created_at DESC LIMIT 20').all();
+  const recommendations = db.prepare('SELECT * FROM recommendations ORDER BY created_at DESC LIMIT 3').all();
 
-  res.json({ channel, videos, aggregateTrends, commentTrends });
+  res.json({ channel, videos, aggregateTrends, commentTrends, recommendations });
 });
 
 // Serve Static Frontend

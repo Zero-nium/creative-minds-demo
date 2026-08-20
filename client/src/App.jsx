@@ -49,6 +49,24 @@ export default function App() {
         </div>
       </section>
 
+      {/* Recommendations Section */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-800">Latest Recommendations (Mind Agent)</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {data.recommendations?.length ? data.recommendations.map((rec, idx) => (
+            <div key={idx} className="bg-indigo-50/50 border border-indigo-100 p-4 rounded-lg space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-xs text-indigo-900">{rec.title}</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">
+                  {rec.priority || 'Medium'} Priority
+                </span>
+              </div>
+              <p className="text-xs text-gray-700 leading-relaxed">{rec.actionable_insight}</p>
+            </div>
+          )) : <p className="text-sm text-gray-400 italic">No recommendations generated yet.</p>}
+        </div>
+      </section>
+
       {/* Latest Videos Grid */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-800">Latest Videos & Comment Trends</h2>
